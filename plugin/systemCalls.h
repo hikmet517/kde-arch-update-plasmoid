@@ -1,7 +1,7 @@
-#include <qt/QtCore/QStringList>
 #ifndef SYSTEMCALLS_H
 #define SYSTEMCALLS_H
 #include <QProcess>
+#include <QStringList>
 #include <QtConcurrent/QtConcurrentRun>
 #include "worker.h"
 
@@ -19,10 +19,6 @@ class systemCalls : public QObject
 
 		QThread workerThread;
 		Worker *worker;
-		QProcess *changeFileProcess;
-		QProcess *CopyFileProcess;
-		QProcess *killShellProcess;
-		QProcess *restartShellProcess;
 		
 		/**
 		* @brief systemCalls default contructor
@@ -45,11 +41,6 @@ class systemCalls : public QObject
 
 		Q_INVOKABLE bool isConnectedToNetwork();
 		
-		Q_INVOKABLE void pickNewIcon();
-
-		Q_INVOKABLE bool setNewIcon(const int mode, const QString fileName = "");
-		
-		void restartShell();
 	signals:
 		/**
 		@brief starts checkupdates on worker thread eventually returns worker->updates
@@ -63,8 +54,6 @@ class systemCalls : public QObject
 		 @details upgrades system. if konsoleflag=true show updates in console. if aur is true run AUR helper and update AUR packages. sets worker->updates to empty list if success or an error string
 		 */
 		void upgradeSystemSignal(bool konsoleFlag, bool aur, bool noconfirm, bool yakuake, bool orphan, bool snapRefreshFlag);
-
-
 };
 
 #endif // SYSTEMCALLS_H

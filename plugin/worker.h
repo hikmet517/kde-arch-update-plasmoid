@@ -1,28 +1,30 @@
 #ifndef WORKER_H
 #define WORKER_H
+#include <QObject>
+#include <QString>
 
+class QProcess;
 class Worker : public QObject
 {
-		Q_OBJECT
-        private:
-                void toggleYakuake(QString);
-                QString prepareYakuake();
-				QProcess *yakuakeProcess=NULL;
+    Q_OBJECT
+private:
+    void toggleYakuake(QString);
+    QString prepareYakuake();
+    QProcess *yakuakeProcess=NULL;
 
-	public:
-		static bool mutex;
-		static bool upgradeProcessRunning;
-	
-		QString getAURHelper();
-		QStringList getAURHelperCommands(QString AURHelper);
-		QStringList updates;
-		static bool wait;
-	signals:
-		void readCheckUpdatesSignal(QStringList &results);
-	public slots:
+public:
+    static bool mutex;
+    static bool upgradeProcessRunning;
 
-		void checkUpdates(bool namesOnly, bool aur);
-		void upgradeSystem(bool konsoleFlag, bool aur, bool noconfirm, bool yakuakeFlag, bool orphan, bool snapRefreshFlag);
+    QString getAURHelper();
+    QStringList getAURHelperCommands(QString AURHelper);
+    QStringList updates;
+    static bool wait;
+signals:
+    void readCheckUpdatesSignal(QStringList &results);
+public slots:
 
+    void checkUpdates(bool namesOnly, bool aur);
+    void upgradeSystem(bool konsoleFlag, bool aur, bool noconfirm, bool yakuakeFlag, bool orphan, bool snapRefreshFlag);
 };
 #endif

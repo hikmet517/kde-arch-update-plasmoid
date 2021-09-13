@@ -1,8 +1,11 @@
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
-cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
+project(kde-arch-update-plasmoid)
 
 set(QT_MIN_VERSION "5.4.0")
 set(KF5_MIN_VERSION "5.0.0")
+
+add_compile_options(-Wall -Wextra -pedantic -Werror)
 
 find_package(ECM 0.0.11 REQUIRED NO_MODULE)
 
@@ -16,5 +19,5 @@ find_package(Qt5 ${REQUIRED_QT_VERSION} CONFIG REQUIRED Quick)
 find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS Plasma)
 add_subdirectory(plugin)
 
-install(PROGRAMS ArchUpdater DESTINATION "/usr/bin")
+install(PROGRAMS ArchUpdater DESTINATION "bin")
 plasma_install_package(package org.kde.archUpdate)

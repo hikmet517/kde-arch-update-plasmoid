@@ -5,10 +5,14 @@ set(plasmoidplugin_SRCS
     )
 
 add_library(plasmoidplugin SHARED ${plasmoidplugin_SRCS})
-find_package(KF5WidgetsAddons)
 
-target_link_libraries(plasmoidplugin Qt5::Quick KF5::Plasma KF5::WidgetsAddons)
+target_link_libraries(plasmoidplugin
+    PRIVATE
+        Qt::Core
+        Qt::Qml
+        Qt::Widgets
+        KF5::CoreAddons)
 
-install(TARGETS plasmoidplugin DESTINATION ${QML_INSTALL_DIR}/org/kde/private/archUpdate)
+install(TARGETS plasmoidplugin DESTINATION ${KDE_INSTALL_QMLDIR}/org/kde/private/archUpdate)
 
-install(FILES qmldir DESTINATION ${QML_INSTALL_DIR}/org/kde/private/archUpdate)
+install(FILES qmldir DESTINATION ${KDE_INSTALL_QMLDIR}/org/kde/private/archUpdate)

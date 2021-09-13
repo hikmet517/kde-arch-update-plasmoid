@@ -17,19 +17,7 @@ Item {
     property alias cfg_noConfirmAURFlag: noConfirmAURCheckBox.checked
     property alias cfg_yakuakeFlag: yakuakeCheckbox.checked
     property alias cfg_orphanFlag: cleanOrphanCheckbox.checked
-    property int cfg_iconMode
     property alias cfg_snapRefreshFlag: snapRefreshCheckbox.checked
-
-    Component.onCompleted: {
-        if (cfg_iconMode == 0)
-            iconGroup.current = radioButton0
-        else if (cfg_iconMode == 1)
-            iconGroup.current = radioButton1
-        else if (cfg_iconMode == 2)
-            iconGroup.current = radioButton2
-        else if (cfg_iconMode == 3)
-            iconGroup.current = radioButton3
-    }
 
     GridLayout {
         id: checkboxGroup
@@ -54,7 +42,7 @@ Item {
             onValueChanged: cfg_checkInterval = value
         }
         Label {
-            text: i18n("Hide the updates version number")
+            text: i18n("Hide the updates version number:")
         }
         CheckBox {
             id: hideVersionCheckBox
@@ -62,7 +50,7 @@ Item {
         }
 
         Label {
-            text: i18n("Show upgrade on konsole")
+            text: i18n("Show upgrade on konsole:")
         }
         CheckBox {
             id: konsoleCheckBox
@@ -75,7 +63,7 @@ Item {
         }
 
         Label {
-            text: i18n("Show upgrade process in yakuake")
+            text: i18n("Show upgrade process in yakuake:")
         }
 
         CheckBox {
@@ -89,7 +77,7 @@ Item {
         }
         Label {
             id: aurText
-            text: i18n("AUR support")
+            text: i18n("AUR support:")
         }
         CheckBox {
             id: aurSupportCheckBox
@@ -116,7 +104,7 @@ Item {
         }
 
         Label {
-            text: i18n("Clean orphan packages after upgrade")
+            text: i18n("Clean orphan packages after upgrade:")
         }
 
         CheckBox {
@@ -125,95 +113,12 @@ Item {
         }
 
         Label{
-            text: i18n("Refresh snap packages during upgrade process")
+            text: i18n("Refresh snap packages during upgrade process:")
         }
 
-        CheckBox{
+        CheckBox {
             id: snapRefreshCheckbox
             Layout.columnSpan: 2
-        }
-
-        Label {
-            id: customImageText
-            text: "Icon:"
-        }
-
-        ExclusiveGroup {
-            id: iconGroup
-            onCurrentChanged: {
-                if (current == radioButton3)
-                    cfg_iconMode = 3
-            }
-        }
-
-        RadioButton {
-            id: radioButton0
-            text: qsTr("Default")
-            Layout.columnSpan: 2
-            exclusiveGroup: iconGroup
-            onClicked: {
-                if (backend.setNewIcon(0))
-                    cfg_iconMode = 0
-                else
-                    iconGroup.current = eval("radioButton" + cfg_iconMode);
-            }
-        }
-
-        Label {
-            id: warningText
-            text: "Requires restart of Plasma Shell"
-            Layout.columnSpan: 1
-            color: "red"
-        }
-        RadioButton {
-            id: radioButton1
-            text: qsTr("Light")
-            Layout.columnSpan: 2
-            exclusiveGroup: iconGroup
-            onClicked: {
-                if (backend.setNewIcon(1))
-                    cfg_iconMode = 1
-                else
-                    iconGroup.current = eval("radioButton" + cfg_iconMode);
-            }
-        }
-
-
-        Item {
-            id: spacer2
-            Layout.fillWidth: true
-        }
-
-
-        RadioButton {
-            id: radioButton2
-            text: qsTr("Dark")
-            Layout.columnSpan: 2
-            exclusiveGroup: iconGroup
-            onClicked: {
-                if (backend.setNewIcon(2))
-                    cfg_iconMode = 2
-                else
-                    iconGroup.current = eval("radioButton" + cfg_iconMode);
-            }
-        }
-
-        Item {
-            id: spacer3
-            Layout.fillWidth: true
-        }
-
-        RadioButton {
-            id: radioButton3
-            text: qsTr("Custom")
-            exclusiveGroup: iconGroup
-        }
-
-        Button {
-            id: imageBrowseButton
-            text: qsTr("Browse...")
-            onClicked: backend.pickNewIcon()
-            enabled: radioButton3.checked
         }
     }
 }
