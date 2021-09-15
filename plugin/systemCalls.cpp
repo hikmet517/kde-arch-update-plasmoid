@@ -97,7 +97,5 @@ Q_INVOKABLE QStringList systemCalls::readCheckUpdates()
         QCoreApplication::processEvents();
 
     worker->mutex = false;
-    qDebug() << "org.kde.archUpdate: Returning updates";
     return worker->updates;
-
 }

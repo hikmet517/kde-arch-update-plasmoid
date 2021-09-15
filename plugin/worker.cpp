@@ -4,11 +4,16 @@
 #include <QDebug>
 #include <QCoreApplication>
 #include <QtNetwork/QNetworkInterface>
-#include "worker.h"
+#include <QStandardPaths>
 #include <QDir>
 #include <QThread>
+#include <QLoggingCategory>
 
 #include <algorithm>
+#include <QProcess>
+#include <QRegExp>
+
+#include "worker.h"
 
 #define SUCCESS 0
 #define CANNOT_START 1
@@ -21,22 +26,31 @@ bool Worker::upgradeProcessRunning;
 
 using std::sort;
 
+Worker::Worker()
+{
+#ifndef NDEBUG
+    QLoggingCategory::defaultCategory()->setEnabled(QtDebugMsg, true);
+#endif
+}
+
 QString Worker::getAURHelper()
 {
-    QDir usrBin("/usr/bin");
-    usrBin.setFilter(QDir::Files);
     QStringList aurHelperFilters;
-    aurHelperFilters << "apacman" << "aura" << "aurget" << "bauerbill" << "pacaur" << "pacget" << "pkgbuilder" << "trizen" << "yay";
-    QStringList aurHelperList = usrBin.entryList(aurHelperFilters);
+    aurHelperFilters << "apacman" << "aura" << "aurget" << "bauerbill" << "pacaur" << "pacget"
+                     << "pkgbuilder" << "trizen" << "yay" << "pikaur" << "pakku";
+
+    QStringList aurHelperList;
+    for(int i=0; i<aurHelperFilters.length(); i++) {
+        QString path = QStandardPaths::findExecutable(aurHelperFilters[i]);
+        if( !path.isEmpty() )
+            aurHelperList.append(aurHelperFilters[i]);
+    }
+
     sort(aurHelperList.begin(), aurHelperList.end());
     qDebug() << "AUR HELPER LIST";
     qDebug() << aurHelperList;
 
-    //pacaur has cower dependecy and will always return cower if only pacaur is install so return pacaur
-    if (aurHelperList.indexOf("pacaur") != -1)
-        return "pacaur";
-
-    else if (aurHelperList.length() == 0)
+    if (aurHelperList.length() == 0)
         return nullptr;
     else
         return aurHelperList[0];
@@ -83,190 +97,85 @@ QStringList Worker::getAURHelperCommands(QString AURHelper)
         return QStringList();
 }
 
-void Worker::checkUpdates(bool namesOnly, bool aur)
+bool Worker::checkUpdates(bool namesOnly, bool aur)
 {
+    qDebug() << "Worker::checkUpdates";
 
-    QString aurPackages;
-    QStringList aurResultsVector;
-    qDebug() << "clicked";
-    //starts checkupdates as new qProcess
-    QProcess checkUpdatesProcess;
-    QStringList namesOnlyResults;
-    QStringList resultsVector;
-    QVector<QStringList> tmp;
-
-    if (aur)
-    {
-        qDebug() << "=========== AUR ===========";
-        QProcess checkUpdatesAURProcess;
-        checkUpdatesAURProcess.start("/usr/bin/checkupdates-aur", QStringList());
-
-        if (checkUpdatesAURProcess.waitForStarted(-1))
-        {
-            if (checkUpdatesAURProcess.waitForReadyRead(-1))
-            {
-                if (checkUpdatesAURProcess.waitForFinished(-1))
-                {
-                    //get all updates, split by new line for individual packages and convert to vector
-                    //remove trailing ""
-                    aurPackages = checkUpdatesAURProcess.readAllStandardOutput();
-                    aurResultsVector = aurPackages.split(((QRegExp) "\n"));
-                    aurResultsVector.removeAt(aurResultsVector.length() - 1);
-                    qDebug() << aurResultsVector;
-                }
-
-                else
-                    qDebug() << "org.kde.archupdate: Cannot finish checkupdates-aur";
-            }
-
-            else
-            {
-                qDebug() << "org.kde.archupdate: AUR returned nothing.  AUR is up to date. :)";
-                //nothing is returned no AUR updates
-                //do nothing
-            }
+    bool synced = syncDatabase(aur);
+    if( synced ) {
+        QProcess proc;
+        if( aur ) {
+            proc.start("yay", {"-Qu"});
+        }
+        else {
+            proc.start("pacman", {"-Qu"});
         }
 
-        else
-            qDebug() << "org.kde.archupdate: cannot start checkupdates-aur";
-    }
-
-    checkUpdatesProcess.start("checkupdates", QStringList());
-
-    if (checkUpdatesProcess.waitForStarted(-1))
-    {
-        qDebug() << "org.kde.archupdate: check updates started";
-
-        if (checkUpdatesProcess.waitForReadyRead(-1))
-        {
-            checkUpdatesProcess.waitForFinished(-1);
-            QString results = checkUpdatesProcess.readAllStandardOutput();
-            qDebug() << "org.kde.archUpdate:  ================CHECKUPDATES CALL===================" << results;
-            //split into vector by \n to get individual packages and create vector
-            resultsVector = results.split(((QRegExp) "\n"));
-            //remove trailing ""
-            resultsVector.removeAt(resultsVector.length() - 1);
-
-            //add aur packages
-            for (int i = 0; i < aurResultsVector.length(); i++)
-                resultsVector.push_back(aurResultsVector[i]);
-
-            //sort vector so aur packages aren't at the bottom
-            sort(resultsVector.begin(), resultsVector.end());
-            qDebug() << "org.kde.archUpdate:  =========CHECK UPDATES SPLIT============" << resultsVector;
-
-            //if namesOnly is supplied as argument, return only package names without version upgrade information
-            if (namesOnly)
-            {
-                for (int i = 0; i < resultsVector.length(); i++)
-                    tmp.push_back(resultsVector[i].split((QRegExp) " "));
-
-                for (int i = 0; i < tmp.length(); i++)
-                    namesOnlyResults.push_back(tmp[i][0]);
-
-                qDebug() << "org.kde.archUpdate:  ==========NAMES ONLY================" << namesOnlyResults;
-                this->updates = namesOnlyResults;
-                this->mutex = false;
-            }
-
-            //nameOnly false so return with version numbers
-            else
-            {
-                this->updates = resultsVector;
-                this->mutex = false;
-            }
-        }
-
-        else
-        {
-            qDebug() << "org.kde.archUpdate: Your system is up to date, checkupdates returned nothing";
-            QStringList err = QStringList();
-            this->updates = err;
-
-            if (aurResultsVector.size() == 0)
-            {
-                qDebug() << "org.kde.archUpdate: Your system is up to date, checkupdates and checkupdates-aur returned nothing";
-                QStringList err = QStringList();
-                this->updates = err;
-                this->mutex = false;
-            }
-
-            //checkupdates returns nothing but checkupdates-aur returned to this->updates= checkupdates-aur
-            else
-            {
-                for (int i = 0; i < aurResultsVector.length(); i++)
-                    resultsVector.push_back(aurResultsVector[i]);
-
-                //sort vector so aur packages aren't at the bottom
-                sort(resultsVector.begin(), resultsVector.end());
-                qDebug() << "org.kde.archUpdate:  =========CHECK UPDATES SPLIT============" << resultsVector;
-
-                //if namesOnly is supplied as argument, return aur only package names without version upgrade information
-                if (namesOnly)
-                {
-                    QVector<QStringList> tmp;
-
-                    for (int i = 0; i < resultsVector.length(); i++)
-                        tmp.push_back(resultsVector[i].split((QRegExp) " "));
-
-                    for (int i = 0; i < tmp.length(); i++)
-                        namesOnlyResults.push_back(tmp[i][0]);
-
-                    qDebug() << "org.kde.archUpdate:  ========== AUR NAMES ONLY================" << namesOnlyResults;
-                    this->updates = namesOnlyResults;
-                    this->mutex = false;
+        if( proc.waitForStarted(-1) ) {
+            if( proc.waitForFinished(-1) ) {
+                QString output = proc.readAllStandardOutput();
+                QStringList updateList = output.trimmed().split("\n");
+                this->updates.clear();
+                if( namesOnly ) {
+                    for (const QString &line : updateList) {
+                        int idx = line.indexOf(' ');
+                        if(idx == -1)
+                            idx = line.size();
+                        this->updates.append(line.mid(0, idx));
+                    }
                 }
-
-                // return checkupdates-aur with version numbers
-                else
-                {
-                    this->updates = resultsVector;
-                    this->mutex = false;
+                else {
+                    this->updates = updateList;
                 }
-
-                qDebug() << "org.kde.archUpdate: checkupdates returned nothing but AUR packages need upgrade.";
+                this->mutex = false;
+                qDebug() << "updates: " << this->updates;
+                return true;
             }
         }
     }
+    this->mutex = false;
+    return false;
+}
 
-    else
-    {
-        qDebug() << "org.kde.archUpdate: Cannot start checkupdates";
-        qDebug() << checkUpdatesProcess.error();
-        qDebug() << checkUpdatesProcess.errorString();
-        this->updates = QStringList() << "cannot start checkupdates";
-        this->mutex = false;
+bool Worker::syncDatabase(bool aur)
+{
+    qDebug() << "Worker::syncDatabase";
+    QProcess proc;
+    if( aur ) {
+        proc.start("yay", {"-Syy"});
+        if( proc.waitForStarted(-1) )
+            if( proc.waitForFinished(-1) )
+                return true;
     }
-};
+    else {
+        proc.start("pacman", {"-Syy"});
+        if( proc.waitForStarted(-1) )
+            if( proc.waitForFinished(-1) )
+                return true;
+    }
+    qDebug() << "Error in process:" << proc.program() << "args:" << proc.arguments();
+    return false;
+}
 
 void Worker::toggleYakuake(QString session)
 {
     QString yakuakeSession = QString::number(session.toInt() - 1);
     QProcess raiseSession;
-    QStringList raiseSessionArguments;
-    raiseSessionArguments << "org.kde.yakuake" << "/yakuake/sessions" << "raiseSession" << yakuakeSession;
-    raiseSession.start("qdbus-qt5", raiseSessionArguments);
-    raiseSession.waitForFinished();
+    raiseSession.start("qdbus-qt5", {"org.kde.yakuake", "/yakuake/sessions", "raiseSession", yakuakeSession});
+    raiseSession.waitForFinished(-1);
     QProcess toggleWindow;
-    QStringList toggleWindowArguments;
-    toggleWindowArguments << "org.kde.yakuake" << "/yakuake/window" << "toggleWindowState";
-    toggleWindow.start("qdbus-qt5", toggleWindowArguments);
-    toggleWindow.waitForFinished();
+    toggleWindow.start("qdbus-qt5", {"org.kde.yakuake", "/yakuake/window", "toggleWindowState"});
+    toggleWindow.waitForFinished(-1);
 }
 
 QString Worker::prepareYakuake()
 {
     // check if yakuake already has a session "arch updater")
     QProcess terminalIdListProcess;
-    QStringList args;
-    args << "org.kde.yakuake" << "/yakuake/sessions" << "org.kde.yakuake.terminalIdList";
-    terminalIdListProcess.start("qdbus-qt5", args);
-    terminalIdListProcess.waitForFinished();
+    terminalIdListProcess.start("qdbus-qt5", {"org.kde.yakuake", "/yakuake/sessions", "org.kde.yakuake.terminalIdList"});
+    terminalIdListProcess.waitForFinished(-1);
     QString terminalIds(terminalIdListProcess.readAllStandardOutput().simplified());
     QStringList terminalList = terminalIds.split(",");
-    bool foundTab = false;
-    QString terminal = "";
-    QString session = "";
 
     foreach (const QString& str, terminalList)
     {
@@ -274,38 +183,24 @@ QString Worker::prepareYakuake()
         arguments << "org.kde.yakuake" << "/yakuake/tabs" << "org.kde.yakuake.tabTitle" << str;
         QProcess getTitleProcess;
         getTitleProcess.start("qdbus-qt5", arguments);
-        getTitleProcess.waitForFinished();
+        getTitleProcess.waitForFinished(-1);
         QString tabTitle(getTitleProcess.readAllStandardOutput().simplified());
         if(tabTitle == "arch updater")
         {
-            QProcess getSessionId;
-            QStringList getSessionIdArguments;
-            getSessionIdArguments << "org.kde.yakuake" << "/yakuake/sessions" << "sessionIdForTerminalId" << str;
-            getSessionId.start("qdbus-qt5", getSessionIdArguments);
-            getSessionId.waitForFinished();
-            QString sessionId(getSessionId.readAllStandardOutput().simplified());
-            terminal = str;
-            session = QString::number(str.toInt() + 1);
-            foundTab = true;
+            return QString::number(str.toInt() + 1);
         }
     }
 
-    // if the session does not exist, add it
-    if (!foundTab)
-    {
-        QProcess addSessionProcess;
-        addSessionProcess.start("qdbus-qt5", QStringList() << "org.kde.yakuake" << "/yakuake/sessions" << "org.kde.yakuake.addSession");
-        addSessionProcess.waitForFinished();
-        terminal = addSessionProcess.readAllStandardOutput();
-        QProcess setTitleProcess;
-        QStringList arguments;
-        arguments << "org.kde.yakuake" << "/yakuake/tabs" << "setTabTitle" << terminal << "arch updater";
-        setTitleProcess.start("qdbus-qt5", arguments);
-        setTitleProcess.waitForFinished();
-        session = QString::number(terminal.toInt() + 1);
-    }
+    // if the session does not exist, create it
+    QProcess addSessionProcess;
+    addSessionProcess.start("qdbus-qt5", {"org.kde.yakuake", "/yakuake/sessions", "org.kde.yakuake.addSession"});
+    addSessionProcess.waitForFinished(-1);
+    QString terminal = addSessionProcess.readAllStandardOutput();
 
-    return session;
+    QProcess setTitleProcess;
+    setTitleProcess.start("qdbus-qt5", {"org.kde.yakuake", "/yakuake/tabs", "setTabTitle", terminal, "arch updater"});
+    setTitleProcess.waitForFinished(-1);
+    return QString::number(terminal.toInt() + 1);
 }
 
 
@@ -334,33 +229,12 @@ void Worker::upgradeSystem(bool konsoleFlag, bool aur, bool noconfirm, bool yaku
 
     QProcess systemUpdateProcess;
 
-    //if yakuake is not running start and sleep for 2 seconds then call upgradeSystem again now that yakuake is started
     if (yakuakeFlag)
     {
-        QProcess ps;
-        QProcess grep;
-        ps.setStandardOutputProcess(&grep);
-        ps.start("ps", QStringList() << "cax");
-        grep.start("grep", QStringList() << "yakuake");
-        grep.setProcessChannelMode(QProcess::ForwardedChannels);
-        ps.waitForStarted();
-        bool retval = false;
-        QByteArray buffer;
-
-        while ((retval = grep.waitForFinished()));
-
-        buffer.append(grep.readAll());
-
-        // if yakuake is not running, start it
-        if (buffer == "")
-        {
-            this->yakuakeProcess = new QProcess();
-            this->yakuakeProcess->start("yakuake", QStringList());
-            this->yakuakeProcess->waitForStarted(-1);
-            prepareYakuake();
-            QThread::sleep(2);
-            return upgradeSystem(konsoleFlag, aur, noconfirm, yakuakeFlag, orphan, snapRefreshFlag);
-        }
+        this->yakuakeProcess = new QProcess();
+        this->yakuakeProcess->start("yakuake", QStringList());
+        this->yakuakeProcess->waitForStarted(-1);
+        prepareYakuake();
     }
 
 
@@ -374,7 +248,7 @@ void Worker::upgradeSystem(bool konsoleFlag, bool aur, bool noconfirm, bool yaku
         }
         // add to arguments aur helper specific command to update
         // apacman is -Syu versus yaort is -Syua etc
-        qDebug() << "AUR HELPER======" << AURHelper;
+        qDebug() << "AUR HELPER: " << AURHelper;
         QStringList AURCommands = getAURHelperCommands(AURHelper);
         QStringList arguments;
 
@@ -382,24 +256,27 @@ void Worker::upgradeSystem(bool konsoleFlag, bool aur, bool noconfirm, bool yaku
         //remove --noconfirm if flag in settings not set
         if (noconfirm == false)
         {
+            qDebug() << "remove --noconfirm";
             for(int i = 0; i < AURCommands.size(); i++)
             {
-                if(AURCommands[i] == "--noconfirm" || AURCommands[i] == "--no-confirm")
+                if(AURCommands[i] == "--noconfirm" || AURCommands[i] == "--no-confirm") {
                     AURCommands.removeAt(i);
+                    i--;
+                }
 
-                if (AURCommands[i] == "--noedit")
+                if (AURCommands[i] == "--noedit") {
                     AURCommands.removeAt(i);
-
+                    i--;
+                }
             }
+            qDebug() << "done";
         }
-
 
         if (yakuakeFlag)
         {
             QString terminal = prepareYakuake();
             //          arguments << "yakuake" << "org.kde.yakuake" << "/Sessions/" + terminal << "runCommand" ;
             arguments << "yakuake" << terminal;
-
 
             toggleYakuake(terminal);
         }
@@ -435,37 +312,47 @@ void Worker::upgradeSystem(bool konsoleFlag, bool aur, bool noconfirm, bool yaku
         // if user selects show in konsole in settings display in konsole
         if (konsoleFlag)
         {
-            QStringList arguments;
-            // /bin/bash -c konsole --hold -e 'sh -c "sudo pacman -Syu ; echo Update Finished'""
-            arguments << "konsole" << "sudo" << "pacman" << "-Syu,";
+            QProcess proc;
+            proc.start("konsole", {"--hold", "-e", "bash -c 'sudo pacman -Syu'"});
+            proc.waitForFinished(-1);
 
-            if(orphan)
-                arguments << "echo," << "echo" << "Cleaning" << " Orphans," << "sudo" << "pacman" << "-Rns" << "$(pacman -Qtdq)" << "--noconfirm,";
+            // QStringList arguments;
+            // // /bin/bash -c konsole --hold -e 'sh -c "sudo pacman -Syu ; echo Update Finished'""
+            // arguments << "konsole" << "sudo" << "pacman" << "-Syu,";
 
-            if(snapRefreshFlag)
-                arguments << "echo," <<"echo" << "Updating" << "Snap" << "Packages," << "sudo" << "snap" << "refresh,";
+            // if(orphan)
+            //     arguments << "echo," << "echo" << "Cleaning" << " Orphans," << "sudo" << "pacman" << "-Rns" << "$(pacman -Qtdq)" << "--noconfirm,";
 
-            arguments << "echo," << "echo" << "----------------," <<  "echo" << "Update" << "Finished";
-            systemUpdateProcess.start("/usr/bin/ArchUpdater", arguments);
+            // if(snapRefreshFlag)
+            //     arguments << "echo," <<"echo" << "Updating" << "Snap" << "Packages," << "sudo" << "snap" << "refresh,";
+
+            // arguments << "echo," << "echo" << "----------------," <<  "echo" << "Update" << "Finished";
+            // systemUpdateProcess.start("/usr/bin/ArchUpdater", arguments);
         }
 
         // if user selects show in yakuake in settings display in yakuake
         if (yakuakeFlag)
         {
-            QStringList arguments;
             QString terminal = prepareYakuake();
-            arguments << "yakuake" << terminal << "sudo" << "pacman" << "-Syu,";
-
-            if(orphan)
-                arguments << "echo," << "echo" << "Cleaning" << " Orphans," << "sudo" << "pacman" << "-Rns" << "$(pacman -Qtdq)" << "--noconfirm,";
-
-            if(snapRefreshFlag)
-                arguments << "echo," <<"echo" << "Updating" << "Snap" << "Packages," << "sudo" << "snap" << "refresh,";
-
-            arguments << "echo," << "echo" << "----------------," <<  "echo" << "Update" << "Finished";
-            systemUpdateProcess.start("/usr/bin/ArchUpdater", arguments);
-            qDebug() << "ARGS " << arguments;
+            QProcess proc;
+            proc.start("qdbus", {"org.kde.yakuake", "/Sessions/" + terminal, "runCommand", "bash -c 'sudo pacman -Syu'"});
             toggleYakuake(terminal);
+            proc.waitForFinished(-1);
+
+            // QStringList arguments;
+            // QString terminal = prepareYakuake();
+            // arguments << "yakuake" << terminal << "sudo" << "pacman" << "-Syu,";
+
+            // if(orphan)
+            //     arguments << "echo," << "echo" << "Cleaning" << " Orphans," << "sudo" << "pacman" << "-Rns" << "$(pacman -Qtdq)" << "--noconfirm,";
+
+            // if(snapRefreshFlag)
+            //     arguments << "echo," <<"echo" << "Updating" << "Snap" << "Packages," << "sudo" << "snap" << "refresh,";
+
+            // arguments << "echo," << "echo" << "----------------," <<  "echo" << "Update" << "Finished";
+            // systemUpdateProcess.start("/usr/bin/ArchUpdater", arguments);
+            // qDebug() << "ARGS " << arguments;
+            // toggleYakuake(terminal);
         }
 
         //run in background
@@ -484,30 +371,28 @@ void Worker::upgradeSystem(bool konsoleFlag, bool aur, bool noconfirm, bool yaku
             systemUpdateProcess.start("usr/bin/ArchUpdater", arguments);
         }
     }
-    if (systemUpdateProcess.waitForStarted(-1))
-    {
+    // if (systemUpdateProcess.waitForStarted(-1))
+    // {
+    //     bool res = systemUpdateProcess.waitForFinished(-1);
+    //     if( res )
+    //     {
+    //         qDebug() << "org.kde.archUpdate: Upgrade process finished";
+    //         if( systemUpdateProcess.exitCode() == 0 )
+    //             qDebug() << "org.kde.archUpdate: Upgrade has succeded";
+    //         else
+    //             qDebug() << "org.kde.archUpdate: Upgrade has failed";
+    //     }
+    //     else
+    //     {
+    //         qDebug() << "org.kde.archUpdate: Cannot finish update";
+    //     }
+    // }
+    // else
+    // {
+    //     qDebug() << "org.kde.archUpdate: Cannot start system upgrade process";
+    // }
 
-        if (systemUpdateProcess.waitForFinished(-1));
-
-        else
-        {
-            qDebug() << "org.kde.archUpdate:  cannot finish update";
-            this->mutex = false;
-            delete this->yakuakeProcess;
-            this->upgradeProcessRunning = false;
-        }
-
-        qDebug() << "org.kde.archUpdate: Upgrade process finished";
-        this->mutex = false;
-        this->upgradeProcessRunning = false;
-    }
-
-    else
-    {
-        qDebug() << "org.kde.archUpdate: Cannot start system upgrade process";
-        this->mutex = false;
-        delete this->yakuakeProcess;
-        this->upgradeProcessRunning = false;
-    }
-
-};
+    this->upgradeProcessRunning = false;
+    this->mutex = false;
+    delete this->yakuakeProcess;
+}

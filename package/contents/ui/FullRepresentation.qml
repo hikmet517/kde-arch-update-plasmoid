@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.5
 import QtQuick.LocalStorage 2.0
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.4
@@ -6,7 +6,7 @@ import QtQuick.XmlListModel 2.0
 import org.kde.plasma.plasmoid 2.0
 import org.kde.plasma.core 2.0 as PlasmaCore
 import org.kde.plasma.extras 2.0 as PlasmaExtras
-import org.kde.plasma.components 2.0 as PlasmaComponents
+import org.kde.plasma.components 3.0 as PlasmaComponents
 import org.kde.kquickcontrolsaddons 2.0 as KQuickControlsAddons
 import org.kde.private.archUpdate 1.0
 
@@ -15,7 +15,6 @@ Item {
     property bool discard: false
     width: theme.implicitWidth
     height: theme.implicitHeight
-
 
     SystemCalls {
         id: backend
@@ -38,12 +37,11 @@ Item {
             height: parent.height
             model: main.theModel
             delegate: Item {
-                x: 5
                 width: parent.width
-                height: 40
+                height: theme.mSize(theme.defaultFont).height + 2*PlasmaCore.Units.smallSpacing
                 Row {
                     id: row1
-                    spacing: 10
+                    spacing: PlasmaCore.Units.largeSpacing
                     Text {
                         text: modelData
                         font.bold: true
@@ -55,7 +53,7 @@ Item {
             snapMode: ListView.SnapToItem
         }
     }
-    
+
     RowLayout {
         id: buttonRow
         anchors {
@@ -67,11 +65,11 @@ Item {
             id: updateButton
             text: "Update System"
             onClicked: function () {
-                backend.upgradeSystem(plasmoid.configuration.konsoleFlag, 
-                                      plasmoid.configuration.aurSupportFlag, 
+                backend.upgradeSystem(plasmoid.configuration.konsoleFlag,
+                                      plasmoid.configuration.aurSupportFlag,
                                       plasmoid.configuration.noConfirmAURFlag,
                                       plasmoid.configuration.yakuakeFlag,
-                                      plasmoid.configuration.orphanFlag, 
+                                      plasmoid.configuration.orphanFlag,
                                       plasmoid.configuration.snapRefreshFlag);
 
                 main.updatesPending=0;
@@ -79,7 +77,7 @@ Item {
             }
         }
         PlasmaComponents.Button {
-            id: checkUpatesButton
+            id: checkUpdatesButton
             text: "Check for Updates"
             onClicked: function () {
                 main.refresh()

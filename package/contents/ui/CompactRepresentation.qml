@@ -1,8 +1,9 @@
-import QtQuick 2.2
+import QtQuick 2.5
 import QtQuick.Layouts 1.1
+import QtGraphicalEffects 1.0
 import org.kde.plasma.plasmoid 2.0
 import org.kde.plasma.core 2.0 as PlasmaCore
-import org.kde.plasma.components 2.0 as PlasmaComponents
+import org.kde.plasma.components 3.0 as PlasmaComponents
 import org.kde.kquickcontrolsaddons 2.0 as KQuickControlsAddons
 import org.kde.private.archUpdate 1.0;
 
@@ -10,49 +11,57 @@ import org.kde.private.archUpdate 1.0;
 Item {
     id: compactRep
     property int checkInterval: plasmoid.configuration.checkInterval * 60000
-    onCheckIntervalChanged: function(){refreshTimer.interval=checkInterval}
-    
-    Layout.minimumWidth: plasmoid.formFactor === PlasmaCore.Types.Horizontal ? height : PlasmaCore.Units.iconSizes.small
-    Layout.minimumHeight: plasmoid.formFactor === PlasmaCore.Types.Vertical ? width
-    : (PlasmaCore.Units.iconSizes.small + 2 * PlasmaCore.Theme.mSize(PlasmaCore.Theme.defaultFont).height)
+    onCheckIntervalChanged: refreshTimer.interval=checkInterval
 
     Layout.maximumWidth: inPanel ? PlasmaCore.Units.iconSizeHints.panel : -1
     Layout.maximumHeight: inPanel ? PlasmaCore.Units.iconSizeHints.panel : -1
-    
-    
-    
+
+
     PlasmaCore.IconItem {
         id: compactIcon
         source: Qt.resolvedUrl("../images/arch-plasmoid.svg")
         anchors.fill: parent
+        active: mouseArea.containsMouse
     }
     Timer {
         id: refreshTimer
         interval: checkInterval
         running: true
         repeat: true
-        onTriggered: main.refresh()
+        onTriggered: function () {
+            main.refresh()
+        }
     }
     Rectangle {
         id: circle
-        width: Math.max(height, label.width - PlasmaCore.Units.devicePixelRatio * 2)
-        height: PlasmaCore.Units.gridUnit - PlasmaCore.Units.devicePixelRatio * 2
-        radius: width * 0.32
+        height: label.height + PlasmaCore.Units.devicePixelRatio
+        width: label.width + 3 * PlasmaCore.Units.devicePixelRatio
+        radius: width * 0.40
         color: PlasmaCore.ColorScope.backgroundColor
         opacity: 0.8
-        visible: main.updatesPending > 0 || updatesPending==="?"
+        visible: main.updatesPending > 0 || updatesPending === "?"
         anchors {
             right: parent.right
             top: parent.top
         }
-    }
 
-    PlasmaComponents.Label {
-        id: label
-        text: main.updatesPending > 99 || main.updatesPending<0 ? "99+" : main.updatesPending
-        font.pixelSize: Math.max(compactIcon.height/4, PlasmaCore.Theme.smallestFont.pixelSize * 0.8)
-        anchors.centerIn: circle
-        visible: circle.visible
+        PlasmaComponents.Label {
+            id: label
+            text: main.updatesPending > 99 || main.updatesPending < 0 ? "99+" : main.updatesPending
+            font.pixelSize: 0.8*PlasmaCore.Theme.smallestFont.pixelSize
+            anchors.centerIn: parent
+            visible: circle.visible
+        }
+
+        layer.enabled: true
+        layer.effect: DropShadow {
+            horizontalOffset: 0
+            verticalOffset: 0
+            radius: PlasmaCore.Units.devicePixelRatio * 2
+            samples: PlasmaCore.Units.devicePixelRatio * 6
+            color: Qt.rgba(0, 0, 0, 0.5)
+        }
+
     }
 
     MouseArea {
