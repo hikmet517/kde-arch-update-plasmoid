@@ -1,49 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
-    http://www.kde.org/standards/kcfg/1.0/kcfg.xsd" >
-    <kcfgfile name=""/>
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+                          http://www.kde.org/standards/kcfg/1.0/kcfg.xsd" >
+  <kcfgfile name=""/>
 
-    <group name="General">
-        <entry name="checkInterval" type="Int">
-            <label>Check interval in minutes</label>
-                <default>15</default>
-        </entry>
-        
-        <entry name="hideVersion" type="Bool">
-            <label>Show only package names (Hide Version Numbers):</label>
-            <default>false</default>
-        </entry>
-        
-        <entry name="konsoleFlag" type="Bool">
-            <label>Show upgrade process on konsole:</label>
-            <default>false</default>
-        </entry>
-        
-        <entry name="aurSupportFlag" type="Bool">
-            <label>check for AUR packages as well as normal:</label>
-            <default>false</default>
-        </entry>
-        
-        <entry name="noConfirmAURFlag" type="Bool">
-            <label>add '--noconfirm' to system upgrade command:</label>
-            <default>false</default>
-        </entry>
-        
-        <entry name="yakuakeFlag" type="Bool">
-            <label>show upgrade process in yakuake:</label>
-            <default>false</default>
-        </entry>
-        
-        <entry name="orphanFlag" type="Bool">
-            <label>remove orphan packages after upgrade:</label>
-            <default>false</default>
-        </entry>
-        
-        <entry name="snapRefreshFlag" type="bool">
-            <label>refresh snap packages during upgrade</label>
-            <default>false</default>
-        </entry>
-        
-    </group>
+  <group name="General">
+    <entry name="checkInterval" type="Int">
+      <label>Check interval in minutes</label>
+      <default>15</default>
+    </entry>
+
+    <entry name="hideVersion" type="Bool">
+      <label>Show only package names (Hide Version Numbers):</label>
+      <default>false</default>
+    </entry>
+
+    <entry name="konsoleFlag" type="Bool">
+      <label>Show upgrade process on konsole:</label>
+      <default>false</default>
+    </entry>
+
+    <entry name="yakuakeFlag" type="Bool">
+      <label>show upgrade process in yakuake:</label>
+      <default>false</default>
+    </entry>
+
+    <entry name="checkUpdatesCommand" type="String">
+      <label>command to run when checking updates</label>
+      <default>checkupdates</default>
+    </entry>
+
+    <entry name="upgradeCommand" type="String">
+      <label>command to run upgrading system</label>
+      <default>sudo pacman -Syu --noconfirm</default>
+    </entry>
+  </group>
+</kcfg>

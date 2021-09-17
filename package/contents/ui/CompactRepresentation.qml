@@ -34,8 +34,8 @@ Item {
     }
     Rectangle {
         id: circle
-        height: label.height + PlasmaCore.Units.devicePixelRatio
-        width: label.width + 3 * PlasmaCore.Units.devicePixelRatio
+        height: label.height
+        width: label.width + 4 * PlasmaCore.Units.devicePixelRatio
         radius: width * 0.40
         color: PlasmaCore.ColorScope.backgroundColor
         opacity: 0.8
@@ -48,20 +48,20 @@ Item {
         PlasmaComponents.Label {
             id: label
             text: main.updatesPending > 99 || main.updatesPending < 0 ? "99+" : main.updatesPending
-            font.pixelSize: 0.8*PlasmaCore.Theme.smallestFont.pixelSize
+            font.pixelSize: PlasmaCore.Theme.smallestFont.pixelSize
+            font.bold: true
             anchors.centerIn: parent
             visible: circle.visible
         }
 
-        layer.enabled: true
-        layer.effect: DropShadow {
-            horizontalOffset: 0
-            verticalOffset: 0
-            radius: PlasmaCore.Units.devicePixelRatio * 2
-            samples: PlasmaCore.Units.devicePixelRatio * 6
-            color: Qt.rgba(0, 0, 0, 0.5)
-        }
-
+        // layer.enabled: true
+        // layer.effect: DropShadow {
+        //     horizontalOffset: 0
+        //     verticalOffset: 0
+        //     radius: PlasmaCore.Units.devicePixelRatio
+        //     samples: PlasmaCore.Units.devicePixelRatio
+        //     color: Qt.rgba(0, 0, 0, 0.5)
+        // }
     }
 
     MouseArea {

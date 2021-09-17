@@ -15,9 +15,10 @@ include(KDEInstallDirs)
 include(KDECMakeSettings)
 include(KDECompilerSettings)
 
+find_package(KF5Plasma REQUIRED)
 find_package(Qt5 ${REQUIRED_QT_VERSION} CONFIG REQUIRED Quick)
 find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS Plasma)
+
 add_subdirectory(plugin)
 
-install(PROGRAMS ArchUpdater DESTINATION "bin")
 plasma_install_package(package org.kde.archUpdate)

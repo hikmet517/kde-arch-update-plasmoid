@@ -66,24 +66,24 @@ Q_INVOKABLE bool systemCalls::isConnectedToNetwork()
 
 
 
-Q_INVOKABLE void systemCalls::checkUpdates(bool namesOnly, bool aur)
+Q_INVOKABLE void systemCalls::checkUpdates(bool namesOnly, QString checkupdatesCommand)
 {
     if(worker->upgradeProcessRunning)
         return;
 
     worker->mutex = true;
-    emit systemCalls::checkUpdatesSignal(namesOnly, aur);
+    emit systemCalls::checkUpdatesSignal(namesOnly, checkupdatesCommand);
 
 }
 
 
-Q_INVOKABLE void systemCalls::upgradeSystem(bool konsoleFlag, bool aur, bool noconfirm, bool yakuake, bool orphan, bool snapRefreshFlag)
+Q_INVOKABLE void systemCalls::upgradeSystem(bool konsoleFlag, bool yakuake, QString upgradeCommand)
 {
     if(worker->upgradeProcessRunning)
         return;
     worker->mutex = true;
     worker->upgradeProcessRunning = true;
-    emit systemCalls::upgradeSystemSignal(konsoleFlag, aur, noconfirm, yakuake, orphan,snapRefreshFlag);
+    emit systemCalls::upgradeSystemSignal(konsoleFlag, yakuake, upgradeCommand);
 }
 
 

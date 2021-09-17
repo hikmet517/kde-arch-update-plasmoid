@@ -21,11 +21,9 @@ Item {
     property var updatesPending: 0
     property var theModel: updateListModel
     property var namesOnly: plasmoid.configuration.hideVersion
-    property var aurSupport: plasmoid.configuration.aurSupportFlag
     property bool internetCheck: false
 
     onNamesOnlyChanged: timer.restart()
-    onAurSupportChanged: timer.restart()
 
     Plasmoid.icon: plasmoid.file("images", appletIcon)
     Plasmoid.compactRepresentation: CompactRepresentation {}
@@ -90,11 +88,10 @@ Item {
         updateListModel.clear();
         var packageList;
         console.log("NAMES ONLY " + plasmoid.configuration.hideVersion);
-        console.log("AUR SUPORT" + plasmoid.configuration.aurSupportFlag);
 
         //logic to show either names only, AUR, both or none
         backend.checkUpdates(plasmoid.configuration.hideVersion,
-                             plasmoid.configuration.aurSupportFlag);
+                             plasmoid.configuration.checkUpdatesCommand);
         //append packages to full representation list
         packageList=backend.readCheckUpdates();
         for (var i = 0; i < packageList.length; i++) {

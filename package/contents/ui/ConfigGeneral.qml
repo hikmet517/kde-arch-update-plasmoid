@@ -2,7 +2,7 @@ import QtQuick 2.5
 import QtQuick.Controls 2.5 as QtControls
 import QtQuick.Layouts 1.1 as QtLayouts
 import org.kde.kirigami 2.5 as Kirigami
-
+import org.kde.plasma.core 2.0 as PlasmaCore
 
 Kirigami.FormLayout {
     id: root
@@ -13,11 +13,8 @@ Kirigami.FormLayout {
     property alias cfg_hideVersion: hideVersionCheckBox.checked
     property alias cfg_konsoleFlag: konsoleRadio.checked
     property alias cfg_yakuakeFlag: yakuakeRadio.checked
-    property alias cfg_backgroundFlag: backgroundRadio.checked
-    property alias cfg_aurSupportFlag: aurSupportCheckBox.checked
-    property alias cfg_noConfirmAURFlag: noConfirmAURCheckBox.checked
-    property alias cfg_orphanFlag: cleanOrphanCheckbox.checked
-    property alias cfg_snapRefreshFlag: snapRefreshCheckbox.checked
+    property alias cfg_checkUpdatesCommand: checkCommandField.text
+    property alias cfg_upgradeCommand: upgradeCommandField.text
 
     QtLayouts.RowLayout {
         Kirigami.FormData.label: i18nc("@label:spinbox", "Check for updates every:")
@@ -57,37 +54,31 @@ Kirigami.FormLayout {
         text: i18nc("@option:radio", "Yakuake")
     }
 
-    QtControls.RadioButton {
-        id: backgroundRadio
-        text: i18nc("@option:radio", "Do not show (run it in background)")
-    }
-
-
     Item {
         Kirigami.FormData.isSection: true
     }
 
-    QtControls.CheckBox {
-        Kirigami.FormData.label: i18n("AUR Support:")
-        id: aurSupportCheckBox
-        text: i18nc("@option:check", "Enable")
+    QtControls.TextField {
+        id: checkCommandField
+        Kirigami.FormData.label: i18n("Command for checking updates:")
+        QtLayouts.Layout.fillWidth: true
+
+        QtControls.ToolTip {
+            text: i18n("Will be run in background, should not include sudo.")
+        }
     }
 
-    QtControls.CheckBox {
-        id: noConfirmAURCheckBox
-        text: i18nc("@option:check", "Use --noconfirm")
-        enabled: aurSupportCheckBox.checked
+    QtControls.TextField {
+        id: upgradeCommandField
+        Kirigami.FormData.label: i18n("Command for upgrading system:")
+        QtLayouts.Layout.fillWidth: true
+
+        QtControls.ToolTip {
+            text: i18n("Will be run in Konsole or Yakuake")
+        }
     }
 
-    QtControls.CheckBox {
-        id: cleanOrphanCheckbox
-        text: i18nc("@option:check", "Clean orphan packages after upgrade")
-        enabled: aurSupportCheckBox.checked
-    }
-
-    QtControls.CheckBox {
-        id: snapRefreshCheckbox
-        text: i18nc("@option:check", "Refresh snap packages during upgrade process")
-        enabled: aurSupportCheckBox.checked
+    Item {
+        Kirigami.FormData.isSection: true
     }
 }
