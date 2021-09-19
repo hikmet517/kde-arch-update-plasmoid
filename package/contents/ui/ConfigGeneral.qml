@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.1 as QtLayouts
 import org.kde.kirigami 2.5 as Kirigami
 import org.kde.plasma.core 2.0 as PlasmaCore
 
+
 Kirigami.FormLayout {
     id: root
     anchors.left: parent.left
@@ -64,7 +65,7 @@ Kirigami.FormLayout {
         QtLayouts.Layout.fillWidth: true
 
         QtControls.ToolTip {
-            text: i18n("Will be run in background, should not include sudo.")
+            text: i18n("Will be run in background, should not include sudo. Output format should be similar to the output of checkupdates. (package oldVersion -> newVersion)")
         }
     }
 

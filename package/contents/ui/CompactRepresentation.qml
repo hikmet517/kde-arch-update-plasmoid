@@ -54,14 +54,14 @@ Item {
             visible: circle.visible
         }
 
-        // layer.enabled: true
-        // layer.effect: DropShadow {
-        //     horizontalOffset: 0
-        //     verticalOffset: 0
-        //     radius: PlasmaCore.Units.devicePixelRatio
-        //     samples: PlasmaCore.Units.devicePixelRatio
-        //     color: Qt.rgba(0, 0, 0, 0.5)
-        // }
+        layer.enabled: true
+        layer.effect: DropShadow {
+            horizontalOffset: 0
+            verticalOffset: 0
+            radius: 1
+            samples: 1 + radius * 2
+            color: Qt.rgba(0, 0, 0, 0.3)
+        }
     }
 
     MouseArea {

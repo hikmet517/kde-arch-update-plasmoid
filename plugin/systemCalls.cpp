@@ -1,17 +1,13 @@
 #include "systemCalls.h"
+
+#include <QProcess>
 #include <QString>
-#include <QVector>
-#include <QDebug>
 #include <QCoreApplication>
 #include <QtNetwork/QNetworkInterface>
-#include <QtConcurrent/QtConcurrentRun>
-#include <QThread>
-#include <QMetaObject>
 #include <QStringList>
 #include <QTime>
-#include <QCoreApplication>
-#include <QFileDialog>
-#include <QFile>
+#include <QDebug>
+#include <QLoggingCategory>
 
 #define SUCCESS 0
 #define CANNOT_START 1
@@ -21,21 +17,12 @@
 
 systemCalls::systemCalls(QObject *parent) : QObject(parent)
 {
-    this->worker = new Worker;
-    worker->moveToThread(&this->workerThread);
-    connect(&workerThread, &QThread::finished, worker, &QObject::deleteLater);
-    connect(this, &systemCalls::checkUpdatesSignal, worker, &Worker::checkUpdates);
-    connect(this, &systemCalls::upgradeSystemSignal, worker, &Worker::upgradeSystem);
+#ifndef NDEBUG
+    QLoggingCategory::defaultCategory()->setEnabled(QtDebugMsg, true);
+#endif
 
-    workerThread.start();
-}
-
-
-
-systemCalls::~systemCalls()
-{
-    workerThread.quit();
-    workerThread.wait();
+    connect(this, &systemCalls::checkUpdatesSignal, this, &systemCalls::checkUpdates);
+    connect(this, &systemCalls::upgradeSystemSignal, this, &systemCalls::upgradeSystem);
 }
 
 
@@ -44,6 +31,7 @@ Q_INVOKABLE bool systemCalls::isConnectedToNetwork()
 {
     QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
     bool result = false;
+
 
     for (int i = 0; i < ifaces.count(); i++)
     {
@@ -65,37 +53,134 @@ Q_INVOKABLE bool systemCalls::isConnectedToNetwork()
 }
 
 
-
-Q_INVOKABLE void systemCalls::checkUpdates(bool namesOnly, QString checkupdatesCommand)
+Q_INVOKABLE QStringList systemCalls::checkUpdates(bool namesOnly, QString checkupdatesCommand)
 {
-    if(worker->upgradeProcessRunning)
-        return;
+    qDebug() << "systemCalls::checkUpdates()";
 
-    worker->mutex = true;
-    emit systemCalls::checkUpdatesSignal(namesOnly, checkupdatesCommand);
+    QProcess proc;
 
+    QStringList splitted = checkupdatesCommand.split(' ');
+    proc.start(splitted[0], QStringList(splitted.begin()+1, splitted.end()));
+
+    if( proc.waitForStarted(-1) ) {
+        if( proc.waitForFinished(-1) ) {
+            QString output = proc.readAllStandardOutput();
+            output = output.trimmed();
+            if ( output.isEmpty() )
+                return QStringList();
+
+            QStringList updateList = output.split('\n');
+            QStringList updates;
+            if( namesOnly ) {
+                for (const QString &line : updateList) {
+                    int idx = line.indexOf(' ');
+                    if(idx == -1)
+                        idx = line.size();
+                    updates.append(line.mid(0, idx));
+                }
+            }
+            else {
+                updates = updateList;
+            }
+            // qDebug() << "updates: " << updates;
+            return updates;
+        }
+    }
+
+    return QStringList();
 }
 
 
-Q_INVOKABLE void systemCalls::upgradeSystem(bool konsoleFlag, bool yakuake, QString upgradeCommand)
+QString systemCalls::prepareYakuake()
 {
-    if(worker->upgradeProcessRunning)
-        return;
-    worker->mutex = true;
-    worker->upgradeProcessRunning = true;
-    emit systemCalls::upgradeSystemSignal(konsoleFlag, yakuake, upgradeCommand);
+    QString session;
+    bool foundTab = false;
+
+    // check if yakuake already has a session named "arch updater"
+    QProcess terminalIdListProcess;
+    terminalIdListProcess.start("qdbus", {"org.kde.yakuake", "/yakuake/sessions", "org.kde.yakuake.terminalIdList"});
+    terminalIdListProcess.waitForFinished(-1);
+    QString terminalIds(terminalIdListProcess.readAllStandardOutput().simplified());
+    QStringList terminalList = terminalIds.split(',');
+    foreach (const QString& str, terminalList) {
+        QStringList arguments;
+        arguments << "org.kde.yakuake" << "/yakuake/tabs" << "org.kde.yakuake.tabTitle" << str;
+        QProcess getTitleProcess;
+        getTitleProcess.start("qdbus", arguments);
+        getTitleProcess.waitForFinished(-1);
+        QString tabTitle(getTitleProcess.readAllStandardOutput().simplified());
+        if(tabTitle == "arch updater") {
+            session = QString::number(str.toInt() + 1);
+            foundTab = true;
+            break;
+        }
+    }
+
+    if( !foundTab ) {
+        // if the session does not exist, create it
+        QProcess addSessionProc;
+        addSessionProc.start("qdbus", {"org.kde.yakuake", "/yakuake/sessions", "org.kde.yakuake.addSession"});
+        addSessionProc.waitForFinished(-1);
+        QString term = addSessionProc.readAllStandardOutput();
+
+        QProcess setTitleProc;
+        setTitleProc.start("qdbus", {"org.kde.yakuake", "/yakuake/tabs", "setTabTitle", term, "arch updater"});
+        setTitleProc.waitForFinished(-1);
+        session = QString::number(term.toInt() + 1);
+    }
+
+    // focus yakuake
+    QString yakuakeSession = QString::number(session.toInt() - 1);
+    QProcess raiseSession;
+    raiseSession.start("qdbus", {"org.kde.yakuake", "/yakuake/sessions", "raiseSession", yakuakeSession});
+    raiseSession.waitForFinished(-1);
+    QProcess toggleWindow;
+    toggleWindow.start("qdbus", {"org.kde.yakuake", "/yakuake/window", "toggleWindowState"});
+    toggleWindow.waitForFinished(-1);
+
+    return session;
 }
 
 
-Q_INVOKABLE QStringList systemCalls::readCheckUpdates()
+bool systemCalls::runInYakuake(QString command)
 {
-    QTime deliTime;
-    if(worker->upgradeProcessRunning)
-        return QStringList();
-    deliTime = QTime::currentTime().addMSecs(500);
-    while(worker->mutex == true)
-        QCoreApplication::processEvents();
+    QString session = prepareYakuake();
+    QStringList args = QStringList() << "org.kde.yakuake" << QString("/Sessions/%1").arg(session)
+                                     << "runCommand" << command;
+    QProcess proc;
+    proc.start("qdbus", args);
+    if( proc.waitForStarted(-1) )
+        if( proc.waitForFinished(-1) )
+            return true;
+    return false;
+}
 
-    worker->mutex = false;
-    return worker->updates;
+
+bool systemCalls::runInKonsole(QString command)
+{
+    QStringList args = QStringList() << "--hold" << "-e" << command;
+    QProcess proc;
+    proc.start("konsole", args);
+    if( proc.waitForStarted(-1) )
+        if( proc.waitForFinished(-1) )
+            return true;
+    return false;
+}
+
+
+
+Q_INVOKABLE void systemCalls::upgradeSystem(bool konsoleFlag, bool yakuakeFlag, QString upgradeCommand)
+{
+    Q_UNUSED(konsoleFlag);
+
+    QStringList args;
+
+    QString command = QString("bash -c '%1'").arg(upgradeCommand);
+
+    if(yakuakeFlag) {
+        runInYakuake(command);
+    }
+    else {
+        runInKonsole(command);
+    }
 }

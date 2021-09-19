@@ -85,15 +85,15 @@ Item {
             internetCheck=false;
             return;
         }
+
         updateListModel.clear();
         var packageList;
         console.log("NAMES ONLY " + plasmoid.configuration.hideVersion);
 
-        //logic to show either names only, AUR, both or none
-        backend.checkUpdates(plasmoid.configuration.hideVersion,
+
+        packageList = backend.checkUpdates(plasmoid.configuration.hideVersion,
                              plasmoid.configuration.checkUpdatesCommand);
         //append packages to full representation list
-        packageList=backend.readCheckUpdates();
         for (var i = 0; i < packageList.length; i++) {
             updateListModel.append({"text": packageList[i]});
         }

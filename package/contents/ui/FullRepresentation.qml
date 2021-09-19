@@ -1,13 +1,14 @@
 import QtQuick 2.5
-import QtQuick.LocalStorage 2.0
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.4
-import QtQuick.XmlListModel 2.0
+
 import org.kde.plasma.plasmoid 2.0
+import org.kde.plasma.components 3.0 as PlasmaComponents
 import org.kde.plasma.core 2.0 as PlasmaCore
 import org.kde.plasma.extras 2.0 as PlasmaExtras
-import org.kde.plasma.components 3.0 as PlasmaComponents
+
 import org.kde.private.archUpdate 1.0
+
 
 Item {
     id: fullRep
@@ -37,16 +38,12 @@ Item {
             model: main.theModel
             delegate: Item {
                 width: parent.width
-                height: theme.mSize(theme.defaultFont).height + 2*PlasmaCore.Units.smallSpacing
-                Row {
-                    id: row1
-                    spacing: PlasmaCore.Units.largeSpacing
-                    Text {
-                        text: modelData
-                        font.bold: true
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: theme.textColor
-                    }
+                height: theme.mSize(theme.defaultFont).height + PlasmaCore.Units.largeSpacing
+                Text {
+                    text: modelData
+                    font.bold: true
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: theme.textColor
                 }
             }
             snapMode: ListView.SnapToItem
