@@ -8,6 +8,7 @@
 #include <QTime>
 #include <QDebug>
 #include <QLoggingCategory>
+#include <qcoreapplication.h>
 
 #define SUCCESS 0
 #define CANNOT_START 1
@@ -63,28 +64,30 @@ Q_INVOKABLE QStringList systemCalls::checkUpdates(bool namesOnly, QString checku
     proc.start(splitted[0], QStringList(splitted.begin()+1, splitted.end()));
 
     if( proc.waitForStarted(-1) ) {
-        if( proc.waitForFinished(-1) ) {
-            QString output = proc.readAllStandardOutput();
-            output = output.trimmed();
-            if ( output.isEmpty() )
-                return QStringList();
-
-            QStringList updateList = output.split('\n');
-            QStringList updates;
-            if( namesOnly ) {
-                for (const QString &line : updateList) {
-                    int idx = line.indexOf(' ');
-                    if(idx == -1)
-                        idx = line.size();
-                    updates.append(line.mid(0, idx));
-                }
-            }
-            else {
-                updates = updateList;
-            }
-            // qDebug() << "updates: " << updates;
-            return updates;
+        while (proc.state() == QProcess::Running) {
+            QCoreApplication::processEvents();
         }
+
+        QString output = proc.readAllStandardOutput();
+        output = output.trimmed();
+        if ( output.isEmpty() )
+            return QStringList();
+
+        QStringList updateList = output.split('\n');
+        QStringList updates;
+        if( namesOnly ) {
+            for (const QString &line : updateList) {
+                int idx = line.indexOf(' ');
+                if(idx == -1)
+                    idx = line.size();
+                updates.append(line.mid(0, idx));
+            }
+        }
+        else {
+            updates = updateList;
+        }
+        // qDebug() << "updates: " << updates;
+        return updates;
     }
 
     return QStringList();
@@ -149,9 +152,12 @@ bool systemCalls::runInYakuake(QString command)
                                      << "runCommand" << command;
     QProcess proc;
     proc.start("qdbus", args);
-    if( proc.waitForStarted(-1) )
-        if( proc.waitForFinished(-1) )
-            return true;
+    if( proc.waitForStarted(-1) ) {
+        while(proc.state() == QProcess::Running) {
+            QCoreApplication::processEvents();
+        }
+        return proc.exitCode() == 0;
+    }
     return false;
 }
 
@@ -161,9 +167,12 @@ bool systemCalls::runInKonsole(QString command)
     QStringList args = QStringList() << "--hold" << "-e" << command;
     QProcess proc;
     proc.start("konsole", args);
-    if( proc.waitForStarted(-1) )
-        if( proc.waitForFinished(-1) )
-            return true;
+    if( proc.waitForStarted(-1) ) {
+        while(proc.state() == QProcess::Running) {
+            QCoreApplication::processEvents();
+        }
+        return proc.exitCode() == 0;
+    }
     return false;
 }
 
