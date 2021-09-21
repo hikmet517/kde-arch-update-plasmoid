@@ -151,14 +151,7 @@ bool systemCalls::runInYakuake(QString command)
     QStringList args = QStringList() << "org.kde.yakuake" << QString("/Sessions/%1").arg(session)
                                      << "runCommand" << command;
     QProcess proc;
-    proc.start("qdbus", args);
-    if( proc.waitForStarted(-1) ) {
-        while(proc.state() == QProcess::Running) {
-            QCoreApplication::processEvents();
-        }
-        return proc.exitCode() == 0;
-    }
-    return false;
+    return proc.startDetached("qdbus", args);
 }
 
 
@@ -166,14 +159,7 @@ bool systemCalls::runInKonsole(QString command)
 {
     QStringList args = QStringList() << "--hold" << "-e" << command;
     QProcess proc;
-    proc.start("konsole", args);
-    if( proc.waitForStarted(-1) ) {
-        while(proc.state() == QProcess::Running) {
-            QCoreApplication::processEvents();
-        }
-        return proc.exitCode() == 0;
-    }
-    return false;
+    return proc.startDetached("konsole", args);
 }
 
 
@@ -184,7 +170,7 @@ Q_INVOKABLE void systemCalls::upgradeSystem(bool konsoleFlag, bool yakuakeFlag, 
 
     QStringList args;
 
-    QString command = QString("bash -c '%1'").arg(upgradeCommand);
+    QString command = QString("bash -c '%1'").arg(upgradeCommand + "; echo Done.");
 
     if(yakuakeFlag) {
         runInYakuake(command);
