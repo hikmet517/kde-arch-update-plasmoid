@@ -65,7 +65,7 @@ Kirigami.FormLayout {
         QtLayouts.Layout.fillWidth: true
 
         QtControls.ToolTip {
-            text: i18n("Will be run in background, should not include sudo. Output format should be similar to the output of checkupdates. (package oldVersion -> newVersion)")
+            text: i18n("Will be run in background, should not include sudo.\nOutput format should be similar to the output of checkupdates. (package oldVersion -> newVersion)")
         }
     }
 
