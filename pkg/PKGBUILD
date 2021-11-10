@@ -1,14 +1,14 @@
 #Maintainer Mike Harris <mike.a.harris@outlook.com>
 pkgname=plasma5-applets-kde-arch-update-notifier-git
-pkgver=7.2.1.r8.g80d0d9f
+pkgver=7.2.1.r9.gd8ceb6c
 pkgrel=1
 pkgdesc="A KDE plasmoid for your system tray notifying you of available updates with AUR Support"
 url="https://github.com/hikmet517/kde-arch-update-plasmoid"
 arch=('x86_64')
 license=('GPL')
-depends=("konsole" "pacman-contrib" "plasma-desktop" "plasma-framework" "qt5-xmlpatterns")
+depends=("konsole" "pacman-contrib" "plasma-workspace" "qt5-xmlpatterns")
 optdepends=("checkupdates-aur" "yakuake")
-makedepends=("make" "cmake" "git" "extra-cmake-modules")
+makedepends=("make" "cmake" "git" "extra-cmake-modules" "plasma-framework")
 conflicts=()
 replaces=()
 backup=()
