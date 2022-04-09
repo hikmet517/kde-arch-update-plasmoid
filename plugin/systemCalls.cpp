@@ -8,7 +8,7 @@
 #include <QTime>
 #include <QDebug>
 #include <QLoggingCategory>
-#include <qcoreapplication.h>
+#include <QEventLoop>
 
 #define SUCCESS 0
 #define CANNOT_START 1
@@ -65,7 +65,7 @@ Q_INVOKABLE QStringList systemCalls::checkUpdates(bool namesOnly, QString checku
 
     if( proc.waitForStarted(-1) ) {
         while (proc.state() == QProcess::Running) {
-            QCoreApplication::processEvents();
+            QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
         }
 
         QString output = proc.readAllStandardOutput();
