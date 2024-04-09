@@ -1,0 +1,9 @@
+kdeplasma-addons package is helpful
+    https://download.kde.org/stable/
+
+after installing, you can try plasmoid without restarting plasmashell with:
+    plasmoidviewer -a com.github.archupdate
+
+resources:
+- https://develop.kde.org/docs/plasma/widget/porting_kf6/
+- https://develop.kde.org/docs/plasma/widget/c-api/

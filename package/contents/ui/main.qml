@@ -1,10 +1,13 @@
-import QtQuick 2.5
-import QtQuick.Layouts 1.1
-import org.kde.plasma.plasmoid 2.0
-import org.kde.plasma.core 2.0 as PlasmaCore
-import org.kde.private.archUpdate 1.0
+import QtQuick
+import QtQuick.Layouts
 
-Item {
+import org.kde.plasma.plasmoid
+import org.kde.plasma.core as PlasmaCore
+
+import com.github.archupdate
+
+
+PlasmoidItem {
     SystemCalls {
         id: backend
     }
@@ -54,22 +57,21 @@ Item {
     }
 
 
-    Timer{
+    Timer {
         id: noInternetRecheckTimer
         interval: 60000
         repeat: false
         onTriggered: {
-            console.log("org.kde.archUpdate: rechecking internet");
+            console.log("com.github.archupdate: rechecking internet");
             refresh()
         }
-
     }
 
     function refresh() {
-        console.log("org.kde.archUpdate: checking internet")
+        console.log("com.github.archupdate: checking internet")
         if(!backend.isConnectedToNetwork() && internetCheck==false){
             noInternetRecheckTimer.start();
-            console.log("org.kde.archUpdate: Timer started");
+            console.log("com.github.archupdate: Timer started");
             updateListModel.clear();
             updatesPending="?";
             updateListModel.append({"text":"Not connected to internet. Rechecking internet connection in 1 minute"});
@@ -78,7 +80,7 @@ Item {
         }
 
         if(internetCheck && !backend.isConnectedToNetwork()){
-            console.log("org.kde.archUpdate: still no internet connection");
+            console.log("com.github.archupdate: still no internet connection");
             updateListModel.clear();
             updatesPending="?";
             updateListModel.append({"text":"No internet connection"});

@@ -1,8 +1,9 @@
-import QtQuick 2.5
-import QtQuick.Controls 2.5 as QtControls
-import QtQuick.Layouts 1.1 as QtLayouts
-import org.kde.kirigami 2.5 as Kirigami
-import org.kde.plasma.core 2.0 as PlasmaCore
+import QtQuick
+import QtQuick.Controls as QtControls
+import QtQuick.Layouts as QtLayouts
+
+import org.kde.kirigami as Kirigami
+import org.kde.plasma.core as PlasmaCore
 
 
 Kirigami.FormLayout {
