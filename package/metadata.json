@@ -1,0 +1,21 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "hikmet1517@gmail.com",
+                "Name": "Hikmet Altintas"
+            }
+        ],
+        "Category": "Utilities",
+        "Description": "See available updates and update your system",
+        "Icon": "/usr/share/plasma/plasmoids/com.github.archupdate/contents/images/arch-plasmoid.svg",
+        "Id": "com.github.archupdate",
+        "License": "GPL-2.0+",
+        "Name": "Arch Update",
+        "Website": "https://github.com/hikmet517/kde-arch-update-plasmoid"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-NotificationArea": "true",
+    "X-Plasma-NotificationAreaCategory": "SystemServices"
+}

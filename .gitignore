@@ -4,3 +4,6 @@ build/
 **/.directory
 .cache/
 compile_commands.json
+
+/pkg/*
+!/pkg/PKGBUILD

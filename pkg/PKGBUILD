@@ -1,39 +1,35 @@
-#Maintainer Mike Harris <mike.a.harris@outlook.com>
-pkgname=plasma5-applets-kde-arch-update-notifier-git
-pkgver=7.2.1.r11.g4824c59
+pkgname=plasma6-applets-kde-arch-update-notifier-git
+pkgver=7.2.1.r12.g82b3869
 pkgrel=1
 pkgdesc="A KDE plasmoid for your system tray notifying you of available updates with AUR Support"
 url="https://github.com/hikmet517/kde-arch-update-plasmoid"
 arch=('x86_64')
 license=('GPL')
-depends=("konsole" "pacman-contrib" "plasma-workspace" "qt5-xmlpatterns")
+depends=("konsole" "pacman-contrib" "kdeplasma-addons" "plasma-workspace")
 optdepends=("checkupdates-aur" "yakuake")
-makedepends=("make" "cmake" "git" "extra-cmake-modules" "plasma-framework")
-conflicts=()
-replaces=()
-backup=()
-install=
-source=("git+https://github.com/hikmet517/kde-arch-update-plasmoid")
-md5sums=("SKIP")
+makedepends=("make" "cmake" "git" "extra-cmake-modules")
+# source=("git+https://github.com/hikmet517/kde-arch-update-plasmoid")
+# md5sums=("SKIP")
 
 pkgver() {
-  cd "$srcdir/kde-arch-update-plasmoid"
-  # cutting off 'foo-' prefix that presents in the git tag
-  printf "%s" "$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g')"
+    # cd "$srcdir/kde-arch-update-plasmoid"
+    cd ../..
+    printf '%s' "$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g')"
 }
 
 build() {
-    cd kde-arch-update-plasmoid
+    # cd kde-arch-update-plasmoid
+    cd ../..
     cmake -B build -S . \
           -DBUILD_TESTING=OFF \
           -DCMAKE_INSTALL_PREFIX=/usr \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DKDE_INSTALL_LIBDIR=lib -DKDE_INSTALL_USE_QT_SYS_PATHS=ON
+          -DCMAKE_BUILD_TYPE=Release
 
     cmake --build build
 }
 
 package(){
-    cd ${srcdir}/kde-arch-update-plasmoid
+    # cd ${srcdir}/kde-arch-update-plasmoid
+    cd ../..
     DESTDIR="$pkgdir" cmake --install build
 }

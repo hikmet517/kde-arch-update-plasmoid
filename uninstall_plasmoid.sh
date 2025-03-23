@@ -1,8 +1,19 @@
 #!/bin/sh
 
-sudo rm -rf /usr/lib/qt/qml/org/kde/private/archUpdate/
-sudo rm -rf /usr/share/plasma/plasmoids/org.kde.archUpdate/
-sudo rm /usr/share/metainfo/org.kde.archUpdate.appdata.xml
-sudo rm /usr/share/kservices5/plasma-applet-org.kde.archUpdate.desktop
+xargs sudo rm < build/install_manifest.txt
+sudo rm -rf /usr/share/plasma/plasmoids/com.github.archupdate/
 
-killall plasmashell && kstart5 plasmashell
+# plasmashell --replace
+# killall plasmashell && kstart plasmashell
+
+# /usr/lib/qt6/plugins/plasma/applets/com.github.archupdate.so
+# /usr/share/plasma/plasmoids/com.github.archupdate/metadata.desktop
+# /usr/share/plasma/plasmoids/com.github.archupdate/contents/config/config.qml
+# /usr/share/plasma/plasmoids/com.github.archupdate/contents/config/main.xml
+# /usr/share/plasma/plasmoids/com.github.archupdate/contents/images/arch-plasmoid.svg
+# /usr/share/plasma/plasmoids/com.github.archupdate/contents/ui/FullRepresentation.qml
+# /usr/share/plasma/plasmoids/com.github.archupdate/contents/ui/CompactRepresentation.qml
+# /usr/share/plasma/plasmoids/com.github.archupdate/contents/ui/main.qml
+# /usr/share/plasma/plasmoids/com.github.archupdate/contents/ui/ConfigGeneral.qml
+# /usr/share/plasma/plasmoids/com.github.archupdate/metadata.json
+# /usr/share/metainfo/com.github.archupdate.appdata.xml

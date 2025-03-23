@@ -1,18 +1,21 @@
-set(plasmoidplugin_SRCS
-  plasmoidplugin.cpp
-  systemCalls.cpp
-  )
+ecm_add_qml_module(archupdateplugin
+  URI "com.github.private.archupdate"
+  VERSION 1.0
+  GENERATE_PLUGIN_SOURCE
+  DEPENDENCIES QtCore
+)
 
-add_library(plasmoidplugin SHARED ${plasmoidplugin_SRCS})
-
-target_link_libraries(plasmoidplugin
+target_sources(archupdateplugin
   PRIVATE
-  Qt5::Core
-  Qt5::Qml
-  Qt5::Quick
-  Qt5::Widgets
-  KF5::CoreAddons)
+  "archupdateplugin.cpp"
+  "archupdateplugin.h"
+)
 
-install(TARGETS plasmoidplugin DESTINATION ${KDE_INSTALL_QMLDIR}/org/kde/private/archUpdate)
+target_link_libraries(archupdateplugin
+  PRIVATE
+  Qt::Core
+  Qt::Gui
+  Plasma::Plasma
+)
 
-install(FILES qmldir DESTINATION ${KDE_INSTALL_QMLDIR}/org/kde/private/archUpdate)
+ecm_finalize_qml_module(archupdateplugin)

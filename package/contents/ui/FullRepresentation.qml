@@ -1,26 +1,24 @@
-import QtQuick 2.5
-import QtQuick.Layouts 1.1
-import QtQuick.Controls 1.4
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import org.kde.plasma.plasmoid 2.0
-import org.kde.plasma.components 3.0 as PlasmaComponents
-import org.kde.plasma.core 2.0 as PlasmaCore
-import org.kde.plasma.extras 2.0 as PlasmaExtras
+import org.kde.plasma.plasmoid
+import org.kde.plasma.components as PlasmaComponents3
+import org.kde.kirigami as Kirigami
+import org.kde.plasma.extras as PlasmaExtras
 
-import org.kde.private.archUpdate 1.0
+import com.github.private.archupdate
 
 
-Item {
+PlasmaExtras.Representation {
     id: fullRep
-    property bool discard: false
-    width: theme.implicitWidth
-    height: theme.implicitHeight
 
-    SystemCalls {
-        id: backend
-    }
+    Layout.minimumWidth: Kirigami.Units.gridUnit * 18
+    Layout.minimumHeight: Kirigami.Units.gridUnit * 18
+    Layout.maximumWidth: Kirigami.Units.gridUnit * 80
+    Layout.maximumHeight: Kirigami.Units.gridUnit * 40
 
-    PlasmaExtras.ScrollArea {
+    PlasmaComponents3.ScrollView {
         id: updatesScroll
 
         anchors {
@@ -35,15 +33,15 @@ Item {
             anchors.fill: parent
             width: parent.width
             height: parent.height
-            model: main.theModel
+            model: root.theModel
             delegate: Item {
-                width: parent.width
-                height: theme.mSize(theme.defaultFont).height + PlasmaCore.Units.largeSpacing
+                width: updateListView.width
+                height: Kirigami.Theme.defaultFont.pixelSize * 2
                 Text {
                     text: modelData
                     font.bold: true
                     anchors.verticalCenter: parent.verticalCenter
-                    color: theme.textColor
+                    color: Kirigami.Theme.textColor
                 }
             }
             snapMode: ListView.SnapToItem
@@ -57,23 +55,23 @@ Item {
             horizontalCenter: parent.horizontalCenter
         }
 
-        PlasmaComponents.Button {
+        PlasmaComponents3.Button {
             id: updateButton
             text: "Update System"
             onClicked: function () {
-                backend.upgradeSystem(plasmoid.configuration.konsoleFlag,
-                                      plasmoid.configuration.yakuakeFlag,
-                                      plasmoid.configuration.upgradeCommand);
+                ArchUpdatePlugin.upgradeSystem(plasmoid.configuration.konsoleFlag,
+                                               plasmoid.configuration.yakuakeFlag,
+                                               plasmoid.configuration.upgradeCommand);
 
-                main.updatesPending=0;
-                main.theModel.clear();
+                root.updatesPending=0;
+                root.theModel.clear();
             }
         }
-        PlasmaComponents.Button {
+        PlasmaComponents3.Button {
             id: checkUpdatesButton
             text: "Check for Updates"
             onClicked: function () {
-                main.refresh()
+                root.refresh()
             }
         }
     }
