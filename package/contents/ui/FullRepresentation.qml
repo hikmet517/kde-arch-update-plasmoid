@@ -36,7 +36,7 @@ PlasmaExtras.Representation {
             model: root.theModel
             delegate: Item {
                 width: updateListView.width
-                height: Kirigami.Theme.defaultFont.pixelSize * 2
+                height: Kirigami.Theme.defaultFont.pixelSize + Kirigami.Units.gridUnit
                 Text {
                     text: modelData
                     font.bold: true
@@ -45,6 +45,29 @@ PlasmaExtras.Representation {
                 }
             }
             snapMode: ListView.SnapToItem
+
+            Loader {
+                anchors.centerIn: parent
+                width: parent.width - (Kirigami.Units.gridUnit * 4)
+
+                active: updateListView.count === 0
+                visible: active
+                asynchronous: true
+
+                sourceComponent: noUpdate
+            }
+
+            Component {
+                id: noUpdate
+
+                PlasmaExtras.PlaceholderMessage {
+                    anchors.centerIn: parent
+                    width: parent.width
+
+                    iconName: "checkmark"
+                    text: i18n("No update available")
+                }
+            }
         }
     }
 

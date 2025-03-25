@@ -1,5 +1,5 @@
 pkgname=plasma6-applets-kde-arch-update-notifier-git
-pkgver=7.2.1.r12.g82b3869
+pkgver=7.2.1.r13.ga04efde
 pkgrel=1
 pkgdesc="A KDE plasmoid for your system tray notifying you of available updates with AUR Support"
 url="https://github.com/hikmet517/kde-arch-update-plasmoid"

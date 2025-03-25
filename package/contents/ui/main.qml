@@ -90,11 +90,11 @@ PlasmoidItem {
         packageList = ArchUpdatePlugin.checkUpdates(plasmoid.configuration.hideVersion,
                                                   plasmoid.configuration.checkUpdatesCommand);
 
-        //append packages to full representation list
+        // append packages to full representation list
         for (var i = 0; i < packageList.length; i++) {
             updateListModel.append({"text": packageList[i]});
         }
-        //counter on CompactRepresentation
+        // counter on CompactRepresentation
         updatesPending = packageList.length;
     }
 }
