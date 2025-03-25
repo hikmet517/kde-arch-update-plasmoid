@@ -1,5 +1,5 @@
 pkgname=plasma6-applets-kde-arch-update-notifier-git
-pkgver=7.2.1.r13.ga04efde
+pkgver=7.2.1.r14.ga2c3d71
 pkgrel=1
 pkgdesc="A KDE plasmoid for your system tray notifying you of available updates with AUR Support"
 url="https://github.com/hikmet517/kde-arch-update-plasmoid"
@@ -8,18 +8,18 @@ license=('GPL')
 depends=("konsole" "pacman-contrib" "kdeplasma-addons" "plasma-workspace")
 optdepends=("checkupdates-aur" "yakuake")
 makedepends=("make" "cmake" "git" "extra-cmake-modules")
-# source=("git+https://github.com/hikmet517/kde-arch-update-plasmoid")
-# md5sums=("SKIP")
+source=("git+https://github.com/hikmet517/kde-arch-update-plasmoid")
+md5sums=("SKIP")
 
 pkgver() {
-    # cd "$srcdir/kde-arch-update-plasmoid"
-    cd ../..
+    cd "$srcdir/kde-arch-update-plasmoid"
+    # cd ../..
     printf '%s' "$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g')"
 }
 
 build() {
-    # cd kde-arch-update-plasmoid
-    cd ../..
+    cd kde-arch-update-plasmoid
+    # cd ../..
     cmake -B build -S . \
           -DBUILD_TESTING=OFF \
           -DCMAKE_INSTALL_PREFIX=/usr \
@@ -29,7 +29,7 @@ build() {
 }
 
 package(){
-    # cd ${srcdir}/kde-arch-update-plasmoid
-    cd ../..
+    cd ${srcdir}/kde-arch-update-plasmoid
+    # cd ../..
     DESTDIR="$pkgdir" cmake --install build
 }
