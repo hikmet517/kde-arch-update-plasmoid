@@ -46,7 +46,7 @@ PlasmoidItem {
         interval: 1000
         running: true
         repeat: false
-        onTriggered: refresh()
+        onTriggered: root.refresh()
     }
 
 
@@ -56,7 +56,7 @@ PlasmoidItem {
         repeat: false
         onTriggered: {
             console.log("com.github.archupdate: rechecking internet");
-            refresh()
+            root.refresh()
         }
 
     }
@@ -84,11 +84,11 @@ PlasmoidItem {
 
         updateListModel.clear();
         var packageList;
-        console.log("com.github.archupdate: names only:" + plasmoid.configuration.hideVersion);
+        console.log("com.github.archupdate: names only:" + Plasmoid.configuration.hideVersion);
 
 
-        packageList = ArchUpdatePlugin.checkUpdates(plasmoid.configuration.hideVersion,
-                                                  plasmoid.configuration.checkUpdatesCommand);
+        packageList = ArchUpdatePlugin.checkUpdates(Plasmoid.configuration.hideVersion,
+                                                    Plasmoid.configuration.checkUpdatesCommand);
 
         // append packages to full representation list
         for (var i = 0; i < packageList.length; i++) {

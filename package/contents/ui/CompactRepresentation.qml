@@ -12,7 +12,7 @@ import com.github.private.archupdate
 
 Item {
     id: compactRep
-    property int checkInterval: plasmoid.configuration.checkInterval * 60000
+    property int checkInterval: Plasmoid.configuration.checkInterval * 60000
     onCheckIntervalChanged: refreshTimer.interval=checkInterval
 
     Layout.maximumWidth: inPanel ? Kirigami.Units.iconSizeHints.panel : -1

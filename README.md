@@ -1,8 +1,6 @@
 # KDE Plasmoid Arch Linux Updates Notification
+
 A KDE plasmoid for your system tray that notifies you of available updates for your Arch Linux System
-
-
-### AUR package: plasma5-applets-kde-arch-update-notifier-git
 
 In your system tray:
 
@@ -16,25 +14,24 @@ Settings:
 
 ![settings](settings.png)
 
-# Requires:
-* Arch Linux
-* KDE desktop environment
-* cmake
-* extra-cmake-modules
-* make
-* pacman-contrib
-* gcc
-* fakeroot
-* konsole
+## Requires:
 
-# How to install
-run ./install_plasmoid.sh
+- Arch Linux
+- KDE desktop environment
+- base-devel
+- cmake
+- extra-cmake-modules
+- make
+- pacman-contrib
+- gcc
+- konsole
 
-right click task bar
+## How to install
 
-select panel options
+    cd pkg
+    makepkg -si
 
-select add widget
-
-double click arch updater
- 
+- right click task bar
+- select panel options
+- select add widget
+- double click arch updater

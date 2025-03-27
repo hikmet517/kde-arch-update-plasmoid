@@ -82,9 +82,9 @@ PlasmaExtras.Representation {
             id: updateButton
             text: "Update System"
             onClicked: function () {
-                ArchUpdatePlugin.upgradeSystem(plasmoid.configuration.konsoleFlag,
-                                               plasmoid.configuration.yakuakeFlag,
-                                               plasmoid.configuration.upgradeCommand);
+                ArchUpdatePlugin.upgradeSystem(Plasmoid.configuration.konsoleFlag,
+                                               Plasmoid.configuration.yakuakeFlag,
+                                               Plasmoid.configuration.upgradeCommand);
 
                 root.updatesPending=0;
                 root.theModel.clear();
